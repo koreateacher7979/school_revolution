@@ -233,21 +233,21 @@
             DOM.refreshBtn.addEventListener('click', () => fetchDataFromGAS(false));
         });
 
-        // 실시간 동기화 로직 (0.8초 주기)
+        // 실시간 동기화 로직 (동기화 시간 단축: 1초)
         function startRealtimeSync() {
             setInterval(async () => {
                 // 수정/삭제 진행중일 때는 백그라운드 갱신을 멈춰 사용성을 해치지 않음
                 if (!GAS_WEB_APP_URL || currentEditingId || pendingAction) return;
                 await fetchDataFromGAS(true); // silent 옵션 켜서 토스트 숨김
-            }, 800);
+            }, 1000); // 요청에 따라 동기화 시간을 1초(1000ms)로 단축
         }
 
         // ==========================================
-        // 데이터 정제 함수 (시간 표시 오류 완벽 해결)
+        // 데이터 정제 함수
         // ==========================================
         const formatTimeSafe = (timeStr) => {
             if (!timeStr) return '';
-            let s = String(timeStr).replace(/^'/, ''); // 구글 시트 텍스트화 강제용 ' 제거
+            let s = String(timeStr).replace(/^'/, ''); 
             if (s.includes('T')) return s.split('T')[1].substring(0, 5); 
             if (/^\d{2}:\d{2}:\d{2}/.test(s)) return s.substring(0, 5); 
             return s.replace(/~/g, ':'); 
@@ -500,15 +500,18 @@
             try {
                 if(!silent) showToast("데이터 동기화 중...", "info");
                 
-                const response = await fetch(GAS_WEB_APP_URL + '?action=read');
+                // 브라우저 캐싱 방지를 위해 현재 시간(timestamp) 파라미터 추가
+                const urlWithTimestamp = GAS_WEB_APP_URL + '?action=read&t=' + new Date().getTime();
+                const response = await fetch(urlWithTimestamp);
                 const result = await response.json();
                 
                 if(result.status === 'success') {
                     const newData = processReservations(result.reservations || []);
+                    const fetchedRooms = result.rooms || [];
                     
-                    // 데이터가 변경되었을 때만 렌더링 (화면 깜빡임 방지)
-                    if(JSON.stringify(newData) !== JSON.stringify(reservations)) {
-                        rooms = result.rooms || [];
+                    // 예약 현황(newData) 데이터나 특별실 목록(fetchedRooms) 중 하나라도 변경되었을 때 렌더링
+                    if(JSON.stringify(newData) !== JSON.stringify(reservations) || JSON.stringify(fetchedRooms) !== JSON.stringify(rooms)) {
+                        rooms = fetchedRooms;
                         reservations = newData;
                         renderOptions();
                         renderList();
@@ -518,7 +521,7 @@
             } catch (error) {
                 if(!silent) {
                     console.error("GAS Fetch Error:", error);
-                    showToast("통신 오류가 발생했습니다.", "error");
+                    showToast("통신 오류가 발생했습니다. (앱스 스크립트 권한을 확인해주세요.)", "error");
                 }
             }
         }
