@@ -270,7 +270,8 @@
                     date: parsedDate,
                     startTime: formatTimeSafe(res.startTime),
                     endTime: formatTimeSafe(res.endTime),
-                    password: String(res.password).trim()
+                    // 수정됨: 구글 시트에서 숫자 앞 0이 날아가는 것을 방지하기 위해 붙인 ' 제거
+                    password: String(res.password).replace(/^'/, '').trim()
                 };
             });
         };
@@ -346,7 +347,8 @@
                 endTime: document.getElementById('endTime').value,
                 subject: document.getElementById('subject').value,
                 purpose: document.getElementById('purpose').value,
-                password: String(document.getElementById('password').value).trim(),
+                // 수정됨: 시트에 기록될 때 맨 앞의 0이 사라지지 않도록 작은따옴표(')를 강제로 붙여 문자열로 처리
+                password: "'" + String(document.getElementById('password').value).trim(),
             };
 
             if (newData.startTime >= newData.endTime) {
