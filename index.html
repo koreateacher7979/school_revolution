@@ -233,13 +233,13 @@
             DOM.refreshBtn.addEventListener('click', () => fetchDataFromGAS(false));
         });
 
-        // 실시간 동기화 로직 (동기화 시간 단축: 1초)
+        // 실시간 동기화 로직
         function startRealtimeSync() {
             setInterval(async () => {
                 // 수정/삭제 진행중일 때는 백그라운드 갱신을 멈춰 사용성을 해치지 않음
                 if (!GAS_WEB_APP_URL || currentEditingId || pendingAction) return;
                 await fetchDataFromGAS(true); // silent 옵션 켜서 토스트 숨김
-            }, 1000); // 요청에 따라 동기화 시간을 1초(1000ms)로 단축
+            }, 1000); 
         }
 
         // ==========================================
@@ -265,13 +265,22 @@
                         parsedDate = `${year}-${month}-${day}`;
                     }
                 }
+                
+                // [수정] 비밀번호 처리: 구글 시트의 숫자 자동 변환을 막기 위해 덧붙인 'PWD_' 문구를 제거
+                let rawPwd = String(res.password).trim();
+                if (rawPwd.startsWith('PWD_')) {
+                    rawPwd = rawPwd.substring(4); // PWD_ 뒤의 실제 번호만 추출
+                } else {
+                    // 혹시 예전에 저장했던 찌꺼기(' 등)가 있다면 제거 (하위호환)
+                    rawPwd = rawPwd.replace(/^['\u200B]+/, '');
+                }
+
                 return { 
                     ...res, 
                     date: parsedDate,
                     startTime: formatTimeSafe(res.startTime),
                     endTime: formatTimeSafe(res.endTime),
-                    // 수정됨: 구글 시트에서 숫자 앞 0이 날아가는 것을 방지하기 위해 붙인 ' 제거
-                    password: String(res.password).replace(/^'/, '').trim()
+                    password: rawPwd
                 };
             });
         };
@@ -347,8 +356,8 @@
                 endTime: document.getElementById('endTime').value,
                 subject: document.getElementById('subject').value,
                 purpose: document.getElementById('purpose').value,
-                // 수정됨: 시트에 기록될 때 맨 앞의 0이 사라지지 않도록 작은따옴표(')를 강제로 붙여 문자열로 처리
-                password: "'" + String(document.getElementById('password').value).trim(),
+                // [수정] 시트에 저장될 때 '0201'이 '201'로 바뀌지 않도록 임의의 문자(PWD_)를 강제로 붙여서 보냄
+                password: "PWD_" + String(document.getElementById('password').value).trim(),
             };
 
             if (newData.startTime >= newData.endTime) {
@@ -447,6 +456,7 @@
             document.getElementById('endTime').value = res.endTime;
             document.getElementById('subject').value = res.subject;
             document.getElementById('purpose').value = res.purpose;
+            // 수정 시 원래 비밀번호 폼 채워넣기 (0201이 온전히 보존됨)
             document.getElementById('password').value = res.password;
 
             DOM.formTitle.innerHTML = `<span class="text-blue-600">예약 수정 모드</span>`;
