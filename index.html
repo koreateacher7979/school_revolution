@@ -143,7 +143,7 @@
         </section>
     </main>
 
-    <!-- 비밀번호 확인 모달 (form으로 변경하여 Enter 키 지원) -->
+    <!-- 비밀번호 확인 모달 -->
     <div id="passwordModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4 opacity-0 transition-opacity duration-300">
         <form id="passwordModalForm" class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-sm transform scale-95 transition-transform duration-300">
             <h3 class="text-lg font-bold text-slate-800 mb-2" id="modalTitle">권한 확인</h3>
@@ -254,7 +254,7 @@
 
                 return { 
                     ...res, 
-                    id: String(res.id).trim(), // 공백으로 인한 ID 인식 오류 차단
+                    id: String(res.id).trim(), 
                     date: parsedDate,
                     startTime: formatTimeSafe(res.startTime),
                     endTime: formatTimeSafe(res.endTime),
@@ -334,7 +334,6 @@
                 endTime: document.getElementById('endTime').value,
                 subject: document.getElementById('subject').value,
                 purpose: document.getElementById('purpose').value,
-                // 숫자가 시트에서 유실되는 것을 막기 위해 PWD_ 문자열을 붙여서 서버로 전송
                 password: "PWD_" + String(document.getElementById('password').value).trim(),
             };
 
@@ -391,13 +390,11 @@
             setTimeout(() => {
                 DOM.modal.classList.add('hidden');
             }, 300);
-            pendingAction = null;
-            pendingTargetId = null;
+            // 이곳에서 초기화하던 변수들은 submit 로직이 완료된 후에 직접 초기화하도록 수정되었습니다.
         }
 
-        // 모달 폼 전송 이벤트 (Enter 키 지원)
         DOM.modalForm.addEventListener('submit', async (e) => {
-            e.preventDefault(); // 페이지 새로고침 방지
+            e.preventDefault(); 
             
             const typedPw = String(DOM.modalPassword.value).trim();
             const targetRes = reservations.find(r => r.id === pendingTargetId);
@@ -410,13 +407,14 @@
             if (!targetRes) {
                 showToast("데이터를 찾을 수 없습니다. 새로고침을 해주세요.", "error");
                 closeModal();
+                pendingAction = null;
+                pendingTargetId = null;
                 return;
             }
 
             let storedPw = String(targetRes.password).trim();
             let isMatch = (storedPw === typedPw);
             
-            // [강력한 비밀번호 매칭 로직] 구글 시트 오류로 인해 0201이 201로 저장된 경우를 고려하여, 둘 다 숫자로 변환했을 때 같으면 무조건 통과시킴
             if (!isMatch) {
                 let numStored = Number(storedPw);
                 let numTyped = Number(typedPw);
@@ -430,13 +428,19 @@
                 return;
             }
 
-            closeModal();
+            // [버그 수정] 모달이 닫히면서 변수가 날아가는 것을 방지하기 위해 수행할 작업을 미리 캐싱합니다.
+            const actionToPerform = pendingAction;
+            const targetIdToPerform = pendingTargetId;
 
-            if (pendingAction === 'edit') {
+            closeModal();
+            pendingAction = null;
+            pendingTargetId = null;
+
+            if (actionToPerform === 'edit') {
                 startEditing(targetRes);
-            } else if (pendingAction === 'delete') {
+            } else if (actionToPerform === 'delete') {
                 if(confirm("정말로 이 예약을 삭제하시겠습니까?")) {
-                    await deleteReservation(pendingTargetId);
+                    await deleteReservation(targetIdToPerform);
                 }
             }
         });
@@ -506,7 +510,7 @@
         }
 
         // ==========================================
-        // Google Apps Script 통신 (통신 오류 완벽 방어)
+        // Google Apps Script 통신
         // ==========================================
         async function fetchDataFromGAS(silent = false) {
             try {
@@ -535,32 +539,52 @@
         }
 
         async function sendToGAS(action, data) {
-            isProcessing = true;
-            showToast("처리 중입니다...", "info");
-            
-            try {
-                // [핵심 해결책] mode 'no-cors'를 적용하여 브라우저가 통신을 중간에 차단하거나 멈추는 에러를 원천적으로 방어합니다.
-                await fetch(GAS_WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({ action: action, data: JSON.stringify(data) })
-                });
+            return new Promise((resolve) => {
+                isProcessing = true;
+                showToast("처리 중입니다...", "info");
                 
-                // 구글 시트에 기록이 반영될 시간을 충분히 주기 위해 1.5초 대기 후 화면 데이터를 갱신합니다. (삭제가 안된 것처럼 보이는 현상 해결)
-                setTimeout(async () => {
-                    await fetchDataFromGAS(true);
-                    showToast(action === 'delete' ? "삭제가 완료되었습니다." : "예약 처리가 완료되었습니다.", "success");
-                    isProcessing = false;
-                }, 1500);
+                // 브라우저 리다이렉트 및 CORS로 인한 데이터 유실을 방지하는 iframe 폼 전송 방식
+                const iframeName = 'gasIframe_' + Date.now();
+                const iframe = document.createElement('iframe');
+                iframe.name = iframeName;
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
                 
-                return true;
-            } catch (error) {
-                console.error("Send Error:", error);
-                showToast("통신 중 오류가 발생했습니다.", "error");
-                isProcessing = false;
-                return false;
-            }
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = GAS_WEB_APP_URL;
+                form.target = iframeName;
+                form.style.display = 'none';
+
+                const actionInput = document.createElement('input');
+                actionInput.name = 'action';
+                actionInput.value = action;
+                form.appendChild(actionInput);
+
+                const dataInput = document.createElement('input');
+                dataInput.name = 'data';
+                dataInput.value = JSON.stringify(data);
+                form.appendChild(dataInput);
+
+                document.body.appendChild(form);
+
+                let isLoaded = false;
+                iframe.onload = () => {
+                    if (isLoaded) return;
+                    isLoaded = true;
+                    
+                    setTimeout(async () => {
+                        await fetchDataFromGAS(true);
+                        showToast(action === 'delete' ? "삭제가 완료되었습니다." : "예약 처리가 완료되었습니다.", "success");
+                        isProcessing = false;
+                        iframe.remove();
+                        form.remove();
+                        resolve(true);
+                    }, 1000);
+                };
+
+                form.submit();
+            });
         }
     </script>
 </body>
