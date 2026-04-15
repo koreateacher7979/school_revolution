@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>학교 특별실 예약 시스템</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Pretendard', sans-serif; }
+        
+        /* 커스텀 스크롤바 */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* 토스트 애니메이션 */
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .toast-animate { animation: slideUp 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 text-white p-2 rounded-lg">
+                    <i class="fas fa-calendar-check text-xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-800 tracking-tight">학교 특별실 예약</h1>
+            </div>
+            <div class="text-sm font-medium text-slate-500 bg-slate-100 px-4 py-2 rounded-full shadow-inner">
+                개발자 : <span class="text-blue-600 font-semibold">가치있는미래교육연구소 대표 김병찬</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- 좌측: 예약 폼 -->
+        <section class="lg:col-span-4 flex flex-col gap-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex items-center gap-2 border-b border-slate-100 pb-4 mb-5">
+                    <i class="fas fa-pen-to-square text-blue-500"></i>
+                    <h2 class="text-lg font-bold text-slate-800" id="formTitle">새 예약 작성</h2>
+                </div>
+                
+                <form id="reservationForm" class="space-y-4">
+                    <!-- 특별실 선택 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">특별실 선택 <span class="text-red-500">*</span></label>
+                        <select id="room" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                            <option value="">특별실을 선택하세요</option>
+                            <!-- JS로 동적 렌더링 -->
+                        </select>
+                    </div>
+
+                    <!-- 예약자 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">예약자 (성명) <span class="text-red-500">*</span></label>
+                        <input type="text" id="reserver" required placeholder="예: 홍길동 교사" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                    </div>
+
+                    <!-- 예약 날짜 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">예약 날짜 <span class="text-red-500">*</span></label>
+                        <input type="date" id="date" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                    </div>
+
+                    <!-- 예약 시간 -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">시작 시간 <span class="text-red-500">*</span></label>
+                            <input type="time" id="startTime" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">종료 시간 <span class="text-red-500">*</span></label>
+                            <input type="time" id="endTime" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                        </div>
+                    </div>
+
+                    <!-- 사용할 과목 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">사용할 과목 <span class="text-red-500">*</span></label>
+                        <input type="text" id="subject" required placeholder="예: 과학, 동아리활동 등" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                    </div>
+
+                    <!-- 사용 목적 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">사용 목적 <span class="text-red-500">*</span></label>
+                        <input type="text" id="purpose" required placeholder="간략한 사용 목적" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                    </div>
+
+                    <!-- 비밀번호 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">비밀번호 (수정/삭제용) <span class="text-red-500">*</span></label>
+                        <input type="password" id="password" required placeholder="4자리 이상 입력" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                    </div>
+
+                    <!-- 버튼 그룹 -->
+                    <div class="pt-4 flex gap-3">
+                        <button type="button" id="cancelEditBtn" class="hidden w-1/3 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition-colors shadow-sm">
+                            취소
+                        </button>
+                        <button type="submit" id="submitBtn" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-md flex justify-center items-center gap-2">
+                            <i class="fas fa-check"></i> <span>예약 완료하기</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- 우측: 예약 현황 뷰어 -->
+        <section class="lg:col-span-8 flex flex-col gap-6">
+            
+            <!-- 필터 및 현황 조회 -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-list text-blue-500"></i> 전체 예약 현황 조회
+                    </h2>
+                    
+                    <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                        <!-- 동기화(새로고침) 버튼 추가 -->
+                        <button id="refreshBtn" class="px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                            <i class="fas fa-sync-alt"></i> 동기화
+                        </button>
+                        <input type="date" id="filterDate" class="px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm">
+                        <select id="filterRoom" class="px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm min-w-[150px]">
+                            <option value="ALL">모든 특별실</option>
+                            <!-- JS 동적 렌더링 -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 예약 리스트 테이블 -->
+                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 text-sm">
+                                <th class="py-3 px-4 font-semibold w-24">날짜</th>
+                                <th class="py-3 px-4 font-semibold w-28">시간</th>
+                                <th class="py-3 px-4 font-semibold w-24">특별실</th>
+                                <th class="py-3 px-4 font-semibold w-24">예약자</th>
+                                <th class="py-3 px-4 font-semibold w-24">과목</th>
+                                <th class="py-3 px-4 font-semibold">목적</th>
+                                <th class="py-3 px-4 font-semibold text-center w-28">관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reservationList" class="divide-y divide-slate-100 text-sm">
+                            <!-- JS로 동적 렌더링 -->
+                            <tr><td colspan="7" class="py-10 text-center text-slate-400">데이터를 불러오는 중입니다...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- GAS 안내 박스 -->
+            <div class="bg-blue-50 border border-blue-200 p-5 rounded-2xl flex gap-4 items-start">
+                <i class="fas fa-info-circle text-blue-500 text-xl mt-0.5"></i>
+                <div>
+                    <h3 class="font-bold text-blue-800 mb-1">구글 스프레드시트 연동 안내</h3>
+                    <p class="text-sm text-blue-600 leading-relaxed">
+                        현재 이 앱은 구글 스프레드시트와 연동되어 작동합니다.<br>
+                        데이터시트에서 내용을 직접 수정하거나 삭제한 경우, 우측 상단의 <b>[동기화]</b> 버튼을 누르면 웹앱 현황판에 즉시 반영됩니다.
+                    </p>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- 비밀번호 확인 모달 -->
+    <div id="passwordModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-sm transform scale-95 transition-transform duration-300" id="modalContent">
+            <h3 class="text-lg font-bold text-slate-800 mb-2" id="modalTitle">권한 확인</h3>
+            <p class="text-sm text-slate-500 mb-4" id="modalDesc">예약시 입력했던 비밀번호를 입력해주세요.</p>
+            
+            <input type="password" id="modalPassword" class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-5" placeholder="비밀번호 입력">
+            
+            <div class="flex gap-2">
+                <button type="button" onclick="closeModal()" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors">취소</button>
+                <button type="button" id="modalConfirmBtn" class="w-1/2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 토스트 메시지 -->
+    <div id="toast" class="fixed bottom-6 right-6 hidden items-center gap-3 px-6 py-4 rounded-xl shadow-lg text-white font-medium z-50">
+        <i id="toastIcon" class="fas"></i>
+        <span id="toastMsg"></span>
+    </div>
+
+    <!-- 스크립트 영역 -->
+    <script>
+        // ==========================================
+        // 설정 영역: 배포한 구글 앱스 스크립트 웹앱 URL 입력
+        // ==========================================
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzZbzlfj7HvOLdWyRcLRlAwFp8LiwrXQ4TMIUnIUG5b1gWZDyonxIUvadb9uUNboeI/exec"; 
+        
+        // ==========================================
+        // 상태 관리
+        // ==========================================
+        let rooms = ['음악실', '미술실', '과학실', '컴퓨터실', '체육관', '시청각실']; 
+        let reservations = [];
+        let currentEditingId = null;
+        let pendingAction = null; 
+        let pendingTargetId = null;
+
+        // DOM 요소
+        const DOM = {
+            form: document.getElementById('reservationForm'),
+            roomSelect: document.getElementById('room'),
+            date: document.getElementById('date'),
+            filterRoomSelect: document.getElementById('filterRoom'),
+            filterDate: document.getElementById('filterDate'),
+            reservationList: document.getElementById('reservationList'),
+            submitBtn: document.getElementById('submitBtn'),
+            cancelEditBtn: document.getElementById('cancelEditBtn'),
+            formTitle: document.getElementById('formTitle'),
+            refreshBtn: document.getElementById('refreshBtn'), // 새로고침 버튼
+            modal: document.getElementById('passwordModal'),
+            modalContent: document.getElementById('modalContent'),
+            modalPassword: document.getElementById('modalPassword'),
+            modalConfirmBtn: document.getElementById('modalConfirmBtn'),
+            modalTitle: document.getElementById('modalTitle'),
+            toast: document.getElementById('toast'),
+            toastMsg: document.getElementById('toastMsg'),
+            toastIcon: document.getElementById('toastIcon')
+        };
+
+        // ==========================================
+        // 초기화 및 데이터 로드
+        // ==========================================
+        window.addEventListener('DOMContentLoaded', async () => {
+            const today = new Date().toISOString().split('T')[0];
+            DOM.filterDate.value = ""; 
+            DOM.date.value = today; 
+
+            if (GAS_WEB_APP_URL) {
+                showToast("데이터를 불러오는 중입니다...", "info");
+                await fetchDataFromGAS();
+            } else {
+                reservations = [];
+                renderOptions();
+                renderList();
+            }
+
+            // 이벤트 리스너 설정
+            DOM.filterDate.addEventListener('change', renderList);
+            DOM.filterRoomSelect.addEventListener('change', renderList);
+            DOM.refreshBtn.addEventListener('click', async () => {
+                showToast("최신 데이터를 동기화합니다.", "info");
+                await fetchDataFromGAS();
+            });
+        });
+
+        // ==========================================
+        // 렌더링 함수
+        // ==========================================
+        function renderOptions() {
+            DOM.roomSelect.innerHTML = '<option value="">특별실을 선택하세요</option>' + 
+                rooms.map(room => `<option value="${room}">${room}</option>`).join('');
+            
+            DOM.filterRoomSelect.innerHTML = '<option value="ALL">모든 특별실</option>' + 
+                rooms.map(room => `<option value="${room}">${room}</option>`).join('');
+        }
+
+        function renderList() {
+            const fDate = DOM.filterDate.value;
+            const fRoom = DOM.filterRoomSelect.value;
+
+            let filtered = reservations.filter(res => {
+                let matchDate = fDate ? res.date === fDate : true;
+                let matchRoom = fRoom !== 'ALL' ? res.room === fRoom : true;
+                return matchDate && matchRoom;
+            });
+
+            filtered.sort((a, b) => {
+                if (a.date !== b.date) return a.date.localeCompare(b.date);
+                return a.startTime.localeCompare(b.startTime);
+            });
+
+            if (filtered.length === 0) {
+                DOM.reservationList.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-400 bg-white"><i class="fas fa-folder-open text-3xl mb-3 opacity-50 block"></i>예약된 내역이 없습니다.</td></tr>`;
+                return;
+            }
+
+            DOM.reservationList.innerHTML = filtered.map(res => `
+                <tr class="bg-white hover:bg-blue-50/50 transition-colors border-b border-slate-100 last:border-0">
+                    <td class="py-3 px-4 text-slate-700">${res.date}</td>
+                    <td class="py-3 px-4 font-semibold text-blue-600">${res.startTime} ~ ${res.endTime}</td>
+                    <td class="py-3 px-4 font-medium text-slate-800">
+                        <span class="inline-block bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md text-xs font-bold border border-slate-200">${res.room}</span>
+                    </td>
+                    <td class="py-3 px-4 text-slate-700">${res.reserver}</td>
+                    <td class="py-3 px-4 text-slate-600">${res.subject}</td>
+                    <td class="py-3 px-4 text-slate-600">${res.purpose}</td>
+                    <td class="py-3 px-4 text-center">
+                        <div class="flex justify-center gap-2">
+                            <button onclick="requestAction('edit', '${res.id}')" class="p-1.5 text-slate-400 hover:text-blue-500 transition-colors" title="수정"><i class="fas fa-edit"></i></button>
+                            <button onclick="requestAction('delete', '${res.id}')" class="p-1.5 text-slate-400 hover:text-red-500 transition-colors" title="삭제"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ==========================================
+        // 로직 처리
+        // ==========================================
+        DOM.form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const newData = {
+                id: currentEditingId || 'ID_' + Date.now(), 
+                room: document.getElementById('room').value,
+                reserver: document.getElementById('reserver').value,
+                date: document.getElementById('date').value,
+                startTime: document.getElementById('startTime').value,
+                endTime: document.getElementById('endTime').value,
+                subject: document.getElementById('subject').value,
+                purpose: document.getElementById('purpose').value,
+                password: String(document.getElementById('password').value).trim(),
+            };
+
+            if (newData.startTime >= newData.endTime) {
+                showToast("종료 시간은 시작 시간보다 늦어야 합니다.", "error");
+                return;
+            }
+
+            if (isOverlapping(newData, currentEditingId)) {
+                showToast(`[시간 중복] 해당 일자/시간에 '${newData.room}'은 이미 예약되어 있습니다.`, "error");
+                return;
+            }
+
+            if (GAS_WEB_APP_URL) {
+                const action = currentEditingId ? 'update' : 'create';
+                const success = await sendToGAS(action, newData);
+                if (!success) return; 
+            }
+
+            resetForm();
+        });
+
+        function isOverlapping(newRes, ignoreId = null) {
+            return reservations.some(res => {
+                if (ignoreId && res.id === ignoreId) return false;
+                if (res.room !== newRes.room) return false;
+                if (res.date !== newRes.date) return false;
+                return (newRes.startTime < res.endTime && newRes.endTime > res.startTime);
+            });
+        }
+
+        // ==========================================
+        // 모달 및 권한 제어
+        // ==========================================
+        function requestAction(action, id) {
+            pendingAction = action;
+            pendingTargetId = id;
+            
+            DOM.modalTitle.innerText = action === 'edit' ? "예약 수정 권한 확인" : "예약 삭제 권한 확인";
+            DOM.modalPassword.value = '';
+            
+            DOM.modal.classList.remove('hidden');
+            setTimeout(() => {
+                DOM.modal.classList.remove('opacity-0');
+                DOM.modalContent.classList.remove('scale-95');
+                DOM.modalContent.classList.add('scale-100');
+            }, 10);
+            DOM.modalPassword.focus();
+        }
+
+        function closeModal() {
+            DOM.modal.classList.add('opacity-0');
+            DOM.modalContent.classList.remove('scale-100');
+            DOM.modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                DOM.modal.classList.add('hidden');
+            }, 300);
+            pendingAction = null;
+            pendingTargetId = null;
+        }
+
+        DOM.modalConfirmBtn.addEventListener('click', async () => {
+            const inputPw = String(DOM.modalPassword.value).trim();
+            const targetRes = reservations.find(r => r.id === pendingTargetId);
+            
+            if (!inputPw) {
+                alert("비밀번호를 입력해주세요.");
+                return;
+            }
+
+            // 수정 1: 엄격한 문자열 치환 비교로 숫자형 비밀번호 오류 방지
+            if (targetRes.password !== inputPw) {
+                showToast("비밀번호가 일치하지 않습니다.", "error");
+                return;
+            }
+
+            closeModal();
+
+            if (pendingAction === 'edit') {
+                startEditing(targetRes);
+            } else if (pendingAction === 'delete') {
+                if(confirm("정말로 이 예약을 삭제하시겠습니까?")) {
+                    await deleteReservation(pendingTargetId);
+                }
+            }
+        });
+
+        async function deleteReservation(id) {
+            if (GAS_WEB_APP_URL) {
+                await sendToGAS('delete', { id: id });
+            }
+        }
+
+        function startEditing(res) {
+            currentEditingId = res.id;
+            
+            document.getElementById('room').value = res.room;
+            document.getElementById('reserver').value = res.reserver;
+            document.getElementById('date').value = res.date;
+            document.getElementById('startTime').value = res.startTime;
+            document.getElementById('endTime').value = res.endTime;
+            document.getElementById('subject').value = res.subject;
+            document.getElementById('purpose').value = res.purpose;
+            document.getElementById('password').value = res.password;
+
+            DOM.formTitle.innerHTML = `<span class="text-blue-600">예약 수정 모드</span>`;
+            DOM.submitBtn.innerHTML = `<i class="fas fa-save"></i> <span>수정 완료하기</span>`;
+            DOM.submitBtn.classList.replace('bg-blue-600', 'bg-emerald-600');
+            DOM.submitBtn.classList.replace('hover:bg-blue-700', 'hover:bg-emerald-700');
+            DOM.cancelEditBtn.classList.remove('hidden');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        DOM.cancelEditBtn.addEventListener('click', resetForm);
+
+        function resetForm() {
+            DOM.form.reset();
+            currentEditingId = null;
+            DOM.date.value = new Date().toISOString().split('T')[0];
+
+            DOM.formTitle.innerHTML = `새 예약 작성`;
+            DOM.submitBtn.innerHTML = `<i class="fas fa-check"></i> <span>예약 완료하기</span>`;
+            DOM.submitBtn.classList.replace('bg-emerald-600', 'bg-blue-600');
+            DOM.submitBtn.classList.replace('hover:bg-emerald-700', 'hover:bg-blue-700');
+            DOM.cancelEditBtn.classList.add('hidden');
+        }
+
+        function showToast(message, type = "success") {
+            DOM.toastMsg.innerText = message;
+            
+            DOM.toast.classList.remove('hidden', 'bg-emerald-500', 'bg-red-500', 'bg-blue-500', 'toast-animate');
+            DOM.toastIcon.className = 'fas text-xl'; 
+
+            if (type === "success") {
+                DOM.toast.classList.add('bg-emerald-500', 'toast-animate');
+                DOM.toastIcon.classList.add('fa-check-circle');
+            } else if (type === "error") {
+                DOM.toast.classList.add('bg-red-500', 'toast-animate');
+                DOM.toastIcon.classList.add('fa-exclamation-circle');
+            } else {
+                DOM.toast.classList.add('bg-blue-500', 'toast-animate');
+                DOM.toastIcon.classList.add('fa-info-circle');
+            }
+
+            DOM.toast.style.display = 'flex';
+            
+            setTimeout(() => {
+                DOM.toast.classList.remove('toast-animate');
+                DOM.toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // ==========================================
+        // Google Apps Script 연동
+        // ==========================================
+        // 수정 2: 시간을 안전하게 변환하는 보조 함수 추가
+        const formatTimeSafe = (timeStr) => {
+            if (!timeStr) return '';
+            let s = String(timeStr);
+            if (s.includes('T')) return s.split('T')[1].substring(0, 5); // Date 객체일 경우 방어
+            if (/^\d{2}:\d{2}:\d{2}/.test(s)) return s.substring(0, 5); // 13:30:00 일 경우 방어
+            return s.replace(/~/g, ':'); // 사용자가 실수로 ~를 쳤을 경우 방어
+        };
+
+        async function fetchDataFromGAS() {
+            try {
+                const response = await fetch(GAS_WEB_APP_URL + '?action=read');
+                const result = await response.json();
+                if(result.status === 'success') {
+                    rooms = result.rooms || [];
+                    
+                    reservations = (result.reservations || []).map(res => {
+                        let parsedDate = res.date;
+                        if (parsedDate && !/^\d{4}-\d{2}-\d{2}$/.test(parsedDate)) {
+                            const d = new Date(parsedDate);
+                            if (!isNaN(d.getTime())) {
+                                const year = d.getFullYear();
+                                const month = String(d.getMonth() + 1).padStart(2, '0');
+                                const day = String(d.getDate()).padStart(2, '0');
+                                parsedDate = `${year}-${month}-${day}`;
+                            }
+                        }
+                        return { 
+                            ...res, 
+                            date: parsedDate,
+                            startTime: formatTimeSafe(res.startTime),
+                            endTime: formatTimeSafe(res.endTime),
+                            password: String(res.password).trim() // 비번 문자열 강제 치환
+                        };
+                    });
+
+                    renderOptions();
+                    renderList();
+                    showToast("데이터 동기화 완료", "success");
+                }
+            } catch (error) {
+                console.error("GAS Fetch Error:", error);
+                showToast("통신 오류가 발생했습니다.", "error");
+            }
+        }
+
+        async function sendToGAS(action, data) {
+            showToast("처리 중입니다...", "info");
+            try {
+                const response = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ action: action, data: JSON.stringify(data) })
+                });
+                
+                const result = await response.json();
+                
+                if(result.status === 'success') {
+                    await fetchDataFromGAS();
+                    showToast(action === 'delete' ? "삭제 완료" : "저장 완료", "success");
+                    return true;
+                } else {
+                    showToast("오류 발생: " + result.message, "error");
+                    return false;
+                }
+            } catch (error) {
+                await fetchDataFromGAS();
+                showToast(action === 'delete' ? "삭제 처리되었습니다." : "예약이 완료되었습니다.", "success");
+                return true;
+            }
+        }
+    </script>
+</body>
+</html>
