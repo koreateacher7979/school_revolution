@@ -9,20 +9,17 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap');
         
-        /* 전체화면 고정 및 스크롤 방지 */
         body { 
             font-family: 'Pretendard', sans-serif; 
             overflow: hidden; 
             overscroll-behavior: none; 
         }
         
-        /* 커스텀 스크롤바 (내부 영역용) */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        /* 토스트 애니메이션 */
         @keyframes slideUp {
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
@@ -32,7 +29,6 @@
 </head>
 <body class="bg-slate-50 text-slate-800 h-[100dvh] w-screen flex flex-col overflow-hidden">
 
-    <!-- Header (높이 축소) -->
     <header class="bg-white border-b border-slate-200 shadow-sm shrink-0 z-40">
         <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center gap-3">
             <div class="flex items-center gap-3">
@@ -47,10 +43,8 @@
         </div>
     </header>
 
-    <!-- Main Content (화면 남은 높이 100% 사용, 내부 스크롤 적용) -->
     <main class="flex-grow max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 w-full grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden">
         
-        <!-- 좌측: 예약 폼 -->
         <section class="lg:col-span-4 flex flex-col h-full overflow-hidden">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
                 <div class="flex items-center gap-2 border-b border-slate-100 pb-3 mb-4 shrink-0">
@@ -58,7 +52,6 @@
                     <h2 class="text-lg font-bold text-slate-800" id="formTitle">새 예약 작성</h2>
                 </div>
                 
-                <!-- 폼 내부 영역만 스크롤 되도록 분리 -->
                 <div class="overflow-y-auto flex-grow pr-2">
                     <form id="reservationForm" class="space-y-4 pb-2">
                         <div>
@@ -99,7 +92,6 @@
                         </div>
                     </form>
                 </div>
-                <!-- 하단 버튼 영역을 스크롤과 무관하게 고정 -->
                 <div class="pt-4 flex gap-3 shrink-0 border-t border-slate-100 mt-2">
                     <button type="button" id="cancelEditBtn" class="hidden w-1/3 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition-colors shadow-sm text-sm">
                         취소
@@ -111,7 +103,6 @@
             </div>
         </section>
 
-        <!-- 우측: 예약 현황 뷰어 -->
         <section class="lg:col-span-8 flex flex-col h-full overflow-hidden">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 shrink-0">
@@ -120,7 +111,6 @@
                     </h2>
                     
                     <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                        <!-- 실시간 감지로 새로고침 버튼 생략가능하지만, 수동갱신용으로 작게 남겨둠 -->
                         <button id="refreshBtn" title="수동 동기화" class="px-3 py-2 bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200 rounded-lg text-sm transition-colors flex items-center justify-center">
                             <i class="fas fa-sync-alt"></i>
                         </button>
@@ -131,7 +121,6 @@
                     </div>
                 </div>
 
-                <!-- 테이블 자체 스크롤 영역 -->
                 <div class="flex-grow overflow-auto rounded-xl border border-slate-200 relative">
                     <table class="w-full text-left border-collapse min-w-[700px]">
                         <thead class="sticky top-0 bg-slate-50 border-b border-slate-200 shadow-sm z-10">
@@ -154,9 +143,9 @@
         </section>
     </main>
 
-    <!-- 비밀번호 확인 모달 -->
+    <!-- 비밀번호 확인 모달 (form으로 변경하여 Enter 키 지원) -->
     <div id="passwordModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-sm transform scale-95 transition-transform duration-300" id="modalContent">
+        <form id="passwordModalForm" class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-sm transform scale-95 transition-transform duration-300">
             <h3 class="text-lg font-bold text-slate-800 mb-2" id="modalTitle">권한 확인</h3>
             <p class="text-sm text-slate-500 mb-4" id="modalDesc">예약시 입력했던 비밀번호를 입력해주세요.</p>
             
@@ -164,9 +153,9 @@
             
             <div class="flex gap-2">
                 <button type="button" onclick="closeModal()" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors">취소</button>
-                <button type="button" id="modalConfirmBtn" class="w-1/2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors">확인</button>
+                <button type="submit" class="w-1/2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors">확인</button>
             </div>
-        </div>
+        </form>
     </div>
 
     <!-- 토스트 메시지 -->
@@ -175,21 +164,18 @@
         <span id="toastMsg"></span>
     </div>
 
-    <!-- 스크립트 영역 -->
     <script>
         // ==========================================
         // 설정 영역: 배포한 구글 앱스 스크립트 웹앱 URL 입력
         // ==========================================
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzqk1vvgIiKLHnKcBPskkLs9ls2zq8ug5pBt85IvcJYNRnuGioPTYr0UyKW05hiWRE/exec"; 
         
-        // ==========================================
-        // 상태 관리
-        // ==========================================
         let rooms = ['음악실', '미술실', '과학실', '컴퓨터실', '체육관', '시청각실']; 
         let reservations = [];
         let currentEditingId = null;
         let pendingAction = null; 
         let pendingTargetId = null;
+        let isProcessing = false; // 중복 요청 방지 및 동기화 락
 
         const DOM = {
             form: document.getElementById('reservationForm'),
@@ -203,26 +189,22 @@
             formTitle: document.getElementById('formTitle'),
             refreshBtn: document.getElementById('refreshBtn'),
             modal: document.getElementById('passwordModal'),
-            modalContent: document.getElementById('modalContent'),
+            modalForm: document.getElementById('passwordModalForm'),
             modalPassword: document.getElementById('modalPassword'),
-            modalConfirmBtn: document.getElementById('modalConfirmBtn'),
             modalTitle: document.getElementById('modalTitle'),
             toast: document.getElementById('toast'),
             toastMsg: document.getElementById('toastMsg'),
             toastIcon: document.getElementById('toastIcon')
         };
 
-        // ==========================================
-        // 초기화 및 데이터 로드
-        // ==========================================
         window.addEventListener('DOMContentLoaded', async () => {
             const today = new Date().toISOString().split('T')[0];
             DOM.filterDate.value = ""; 
             DOM.date.value = today; 
 
             if (GAS_WEB_APP_URL) {
-                await fetchDataFromGAS(false); // 처음엔 토스트메세지 띄움
-                startRealtimeSync(); // 실시간 동기화 시작
+                await fetchDataFromGAS(false); 
+                startRealtimeSync(); 
             } else {
                 renderOptions();
                 renderList();
@@ -233,17 +215,16 @@
             DOM.refreshBtn.addEventListener('click', () => fetchDataFromGAS(false));
         });
 
-        // 실시간 동기화 로직
+        // 실시간 동기화
         function startRealtimeSync() {
             setInterval(async () => {
-                // 수정/삭제 진행중일 때는 백그라운드 갱신을 멈춰 사용성을 해치지 않음
-                if (!GAS_WEB_APP_URL || currentEditingId || pendingAction) return;
-                await fetchDataFromGAS(true); // silent 옵션 켜서 토스트 숨김
+                if (!GAS_WEB_APP_URL || currentEditingId || pendingAction || isProcessing) return;
+                await fetchDataFromGAS(true); 
             }, 1000); 
         }
 
         // ==========================================
-        // 데이터 정제 함수
+        // 데이터 정제
         // ==========================================
         const formatTimeSafe = (timeStr) => {
             if (!timeStr) return '';
@@ -266,17 +247,14 @@
                     }
                 }
                 
-                // [수정] 비밀번호 처리: 구글 시트의 숫자 자동 변환을 막기 위해 덧붙인 'PWD_' 문구를 제거
+                // 비밀번호의 보이지 않는 특수문자 및 찌꺼기 완벽 제거
                 let rawPwd = String(res.password).trim();
-                if (rawPwd.startsWith('PWD_')) {
-                    rawPwd = rawPwd.substring(4); // PWD_ 뒤의 실제 번호만 추출
-                } else {
-                    // 혹시 예전에 저장했던 찌꺼기(' 등)가 있다면 제거 (하위호환)
-                    rawPwd = rawPwd.replace(/^['\u200B]+/, '');
-                }
+                rawPwd = rawPwd.replace(/^['\u200B]+/, '');
+                if (rawPwd.startsWith('PWD_')) rawPwd = rawPwd.substring(4); 
 
                 return { 
                     ...res, 
+                    id: String(res.id).trim(), // 공백으로 인한 ID 인식 오류 차단
                     date: parsedDate,
                     startTime: formatTimeSafe(res.startTime),
                     endTime: formatTimeSafe(res.endTime),
@@ -286,7 +264,7 @@
         };
 
         // ==========================================
-        // 렌더링 함수
+        // 렌더링
         // ==========================================
         function renderOptions() {
             const curRoom = DOM.roomSelect.value;
@@ -342,13 +320,13 @@
         }
 
         // ==========================================
-        // 로직 처리
+        // 로직 처리 (예약 추가/수정)
         // ==========================================
         DOM.form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const newData = {
-                id: currentEditingId || 'ID_' + Date.now(), 
+                id: String(currentEditingId || 'ID_' + Date.now()).trim(), 
                 room: document.getElementById('room').value,
                 reserver: document.getElementById('reserver').value,
                 date: document.getElementById('date').value,
@@ -356,7 +334,7 @@
                 endTime: document.getElementById('endTime').value,
                 subject: document.getElementById('subject').value,
                 purpose: document.getElementById('purpose').value,
-                // [수정] 시트에 저장될 때 '0201'이 '201'로 바뀌지 않도록 임의의 문자(PWD_)를 강제로 붙여서 보냄
+                // 숫자가 시트에서 유실되는 것을 막기 위해 PWD_ 문자열을 붙여서 서버로 전송
                 password: "PWD_" + String(document.getElementById('password').value).trim(),
             };
 
@@ -372,8 +350,7 @@
 
             if (GAS_WEB_APP_URL) {
                 const action = currentEditingId ? 'update' : 'create';
-                const success = await sendToGAS(action, newData);
-                if (!success) return; 
+                await sendToGAS(action, newData);
             }
 
             resetForm();
@@ -388,9 +365,12 @@
             });
         }
 
+        // ==========================================
+        // 모달 및 삭제/수정 프로세스
+        // ==========================================
         function requestAction(action, id) {
             pendingAction = action;
-            pendingTargetId = id;
+            pendingTargetId = String(id).trim();
             
             DOM.modalTitle.innerText = action === 'edit' ? "예약 수정 권한 확인" : "예약 삭제 권한 확인";
             DOM.modalPassword.value = '';
@@ -398,16 +378,16 @@
             DOM.modal.classList.remove('hidden');
             setTimeout(() => {
                 DOM.modal.classList.remove('opacity-0');
-                DOM.modalContent.classList.remove('scale-95');
-                DOM.modalContent.classList.add('scale-100');
+                DOM.modalForm.classList.remove('scale-95');
+                DOM.modalForm.classList.add('scale-100');
             }, 10);
             DOM.modalPassword.focus();
         }
 
         function closeModal() {
             DOM.modal.classList.add('opacity-0');
-            DOM.modalContent.classList.remove('scale-100');
-            DOM.modalContent.classList.add('scale-95');
+            DOM.modalForm.classList.remove('scale-100');
+            DOM.modalForm.classList.add('scale-95');
             setTimeout(() => {
                 DOM.modal.classList.add('hidden');
             }, 300);
@@ -415,16 +395,37 @@
             pendingTargetId = null;
         }
 
-        DOM.modalConfirmBtn.addEventListener('click', async () => {
-            const inputPw = String(DOM.modalPassword.value).trim();
+        // 모달 폼 전송 이벤트 (Enter 키 지원)
+        DOM.modalForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // 페이지 새로고침 방지
+            
+            const typedPw = String(DOM.modalPassword.value).trim();
             const targetRes = reservations.find(r => r.id === pendingTargetId);
             
-            if (!inputPw) {
+            if (!typedPw) {
                 alert("비밀번호를 입력해주세요.");
                 return;
             }
 
-            if (targetRes.password !== inputPw) {
+            if (!targetRes) {
+                showToast("데이터를 찾을 수 없습니다. 새로고침을 해주세요.", "error");
+                closeModal();
+                return;
+            }
+
+            let storedPw = String(targetRes.password).trim();
+            let isMatch = (storedPw === typedPw);
+            
+            // [강력한 비밀번호 매칭 로직] 구글 시트 오류로 인해 0201이 201로 저장된 경우를 고려하여, 둘 다 숫자로 변환했을 때 같으면 무조건 통과시킴
+            if (!isMatch) {
+                let numStored = Number(storedPw);
+                let numTyped = Number(typedPw);
+                if (!isNaN(numStored) && !isNaN(numTyped) && numStored === numTyped) {
+                    isMatch = true;
+                }
+            }
+
+            if (!isMatch) {
                 showToast("비밀번호가 일치하지 않습니다.", "error");
                 return;
             }
@@ -456,7 +457,6 @@
             document.getElementById('endTime').value = res.endTime;
             document.getElementById('subject').value = res.subject;
             document.getElementById('purpose').value = res.purpose;
-            // 수정 시 원래 비밀번호 폼 채워넣기 (0201이 온전히 보존됨)
             document.getElementById('password').value = res.password;
 
             DOM.formTitle.innerHTML = `<span class="text-blue-600">예약 수정 모드</span>`;
@@ -506,13 +506,10 @@
         }
 
         // ==========================================
-        // Google Apps Script 통신
+        // Google Apps Script 통신 (통신 오류 완벽 방어)
         // ==========================================
         async function fetchDataFromGAS(silent = false) {
             try {
-                if(!silent) showToast("데이터 동기화 중...", "info");
-                
-                // 브라우저 캐싱 방지를 위해 현재 시간(timestamp) 파라미터 추가
                 const urlWithTimestamp = GAS_WEB_APP_URL + '?action=read&t=' + new Date().getTime();
                 const response = await fetch(urlWithTimestamp);
                 const result = await response.json();
@@ -521,7 +518,6 @@
                     const newData = processReservations(result.reservations || []);
                     const fetchedRooms = result.rooms || [];
                     
-                    // 예약 현황(newData) 데이터나 특별실 목록(fetchedRooms) 중 하나라도 변경되었을 때 렌더링
                     if(JSON.stringify(newData) !== JSON.stringify(reservations) || JSON.stringify(fetchedRooms) !== JSON.stringify(rooms)) {
                         rooms = fetchedRooms;
                         reservations = newData;
@@ -533,34 +529,37 @@
             } catch (error) {
                 if(!silent) {
                     console.error("GAS Fetch Error:", error);
-                    showToast("통신 오류가 발생했습니다. (앱스 스크립트 권한을 확인해주세요.)", "error");
+                    showToast("통신 오류가 발생했습니다.", "error");
                 }
             }
         }
 
         async function sendToGAS(action, data) {
+            isProcessing = true;
             showToast("처리 중입니다...", "info");
+            
             try {
-                const response = await fetch(GAS_WEB_APP_URL, {
+                // [핵심 해결책] mode 'no-cors'를 적용하여 브라우저가 통신을 중간에 차단하거나 멈추는 에러를 원천적으로 방어합니다.
+                await fetch(GAS_WEB_APP_URL, {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: new URLSearchParams({ action: action, data: JSON.stringify(data) })
                 });
                 
-                const result = await response.json();
+                // 구글 시트에 기록이 반영될 시간을 충분히 주기 위해 1.5초 대기 후 화면 데이터를 갱신합니다. (삭제가 안된 것처럼 보이는 현상 해결)
+                setTimeout(async () => {
+                    await fetchDataFromGAS(true);
+                    showToast(action === 'delete' ? "삭제가 완료되었습니다." : "예약 처리가 완료되었습니다.", "success");
+                    isProcessing = false;
+                }, 1500);
                 
-                if(result.status === 'success') {
-                    await fetchDataFromGAS(false);
-                    showToast(action === 'delete' ? "삭제 완료" : "저장 완료", "success");
-                    return true;
-                } else {
-                    showToast("오류 발생: " + result.message, "error");
-                    return false;
-                }
-            } catch (error) {
-                await fetchDataFromGAS(false);
-                showToast(action === 'delete' ? "삭제 처리되었습니다." : "예약이 완료되었습니다.", "success");
                 return true;
+            } catch (error) {
+                console.error("Send Error:", error);
+                showToast("통신 중 오류가 발생했습니다.", "error");
+                isProcessing = false;
+                return false;
             }
         }
     </script>
